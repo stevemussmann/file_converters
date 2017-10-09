@@ -2,15 +2,25 @@
 
 use warnings;
 use strict;
+use Getopt::Std;
 
-# $0 holds the absolute path of this script
-my $usage = "\nUsage: $0 phylip_file output_file\n\n";
+if( scalar( @ARGV ) == 0 ){
+	&help;
+	die "Exiting program because no command line options were used.\n\n";
+}
 
-# kill program and print usage if not at least one command line argument
-$ARGV[1] or die $usage;
+# take command line arguments
+my %opts;
+getopts( 'p:ho:', \%opts );
 
-# @ARGV holds the command line arguments
-my( $phy, $out ) = @ARGV;
+# if -h flag is used kill program and print help
+if( $opts{h} ){
+	&help;
+	die "Exiting program because help flag was used.\n\n";
+}
+
+# parse the command line
+my( $phy, $out ) = &parsecom( \%opts );
 
 # declare variables
 my @lines; # array to hold lines from input unlinked_snps file
@@ -72,3 +82,41 @@ print OUT "End;\n";
 close OUT;
 
 exit;
+#####################################################################################################
+############################################ Subroutines ############################################
+#####################################################################################################
+
+# subroutine to print help
+sub help{
+  
+  print "\nphylip2nexus.pl is a perl script developed by Steven Michael Mussmann\n\n";
+  print "To report bugs send an email to mussmann\@email.uark.edu\n";
+  print "When submitting bugs please include all input files, options used for the program, and all error messages that were printed to the screen\n\n";
+  print "Program Options:\n";
+  print "\t\t[ -h | -o | -p ]\n\n";
+  print "\t-h:\tUse this flag to display this help message.\n";
+  print "\t\tThe program will die after the help message is displayed.\n\n";
+  print "\t-o:\tUse this flag to specify the output file name.\n";
+  print "\t\tIf no name is provided, the file extension \".nex\" will be appended to the input file name.\n\n";
+  print "\t-p:\tSpecify the name of a phylip file.\n\n";
+  
+}
+
+#####################################################################################################
+# subroutine to parse the command line options
+
+sub parsecom{ 
+  
+  my( $params ) =  @_;
+  my %opts = %$params;
+  
+  # set default values for command line arguments
+  my $phy = $opts{p} || die "No input file specified.\n\n"; #used to specify input phylip file.
+  my $out = $opts{o} || "$phy.nex"  ; #used to specify output file name.  If no name is provided, the file extension ".nex" will be appended to the input file name.
+
+
+  return( $phy, $out );
+
+}
+
+#####################################################################################################
