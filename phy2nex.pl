@@ -3,6 +3,7 @@
 use warnings;
 use strict;
 use Getopt::Std;
+use Data::Dumper;
 
 if( scalar( @ARGV ) == 0 ){
 	&help;
@@ -11,7 +12,7 @@ if( scalar( @ARGV ) == 0 ){
 
 # take command line arguments
 my %opts;
-getopts( 'p:ho:', \%opts );
+getopts( 'm:p:ho:', \%opts );
 
 # if -h flag is used kill program and print help
 if( $opts{h} ){
@@ -20,34 +21,42 @@ if( $opts{h} ){
 }
 
 # parse the command line
-my( $phy, $out ) = &parsecom( \%opts );
+my( $phy, $out, $sets, $map ) = &parsecom( \%opts );
 
 # declare variables
 my @lines; # array to hold lines from input unlinked_snps file
+my @maplines; # array to hold lines from map file
 my @names; # array to hold sequence names
 my @seqs; # array to hold sequences
 my $outfile = "$phy.nex";
 
-open( PHY, $phy ) or die "Can't open $phy: $!\n\n";
+my %popmap; #holds the population map
+my %nummap; #holds numbers for each sample
+my %popcounts; #holds count for each population
 
-while( my $line = <PHY> ){
-	chomp( $line );
-	push( @lines, $line );
-}
+# read input files
+&filetoarray( $phy, \@lines );
+&filetoarray( $map, \@maplines );
 
-close PHY;
-
-# print out lines for testing
+# Handle phylip input
+my $counter = 0;
+shift( @lines ); #get rid of header
 foreach my $item( @lines ){
+	$counter++;
 	#print $item, "\n";
 	my @temp = split( /\s+/, $item );
+	$nummap{$temp[0]} = $counter;
 	push( @names, $temp[0] );
 	push( @seqs, $temp[1] );
 }
 
-# get rid of phylip header
-shift(@names);
-shift(@seqs);
+#handle popmap input
+foreach my $item( @maplines ){
+	my @temp = split( /\s+/, $item );
+	$popmap{$temp[0]} = $temp[1];
+	$popcounts{$temp[1]}++;
+}
+
 
 my $seq_length = length($seqs[0]);
 foreach my $item( @seqs ){
@@ -79,7 +88,33 @@ for( my $i=0; $i<$align_length; $i++){
 print OUT "\t;\n";
 print OUT "End;\n";
 
+my $end =  scalar keys %popcounts;
+
+if( $sets == 1 ){
+	my $popcount = 0;
+	print OUT "begin sets;\n";
+	print OUT "\ttaxpartition pops=\n";
+	foreach my $pop( sort keys %popcounts ){
+		$popcount++;
+		print OUT "\t", $pop, "\t:";
+		foreach my $ind( sort keys %nummap ){
+			if( $popmap{$ind} eq $pop ){
+				print OUT " ", $nummap{$ind};
+			}
+		}
+		if( $popcount != $end ){
+			print OUT ",\n";
+		}else{
+			print OUT ";\n";
+		}
+	}
+	print OUT "end;\n";
+}
+
 close OUT;
+
+#print Dumper(\%popmap);
+#print Dumper(\%nummap);
 
 exit;
 #####################################################################################################
@@ -93,9 +128,11 @@ sub help{
   print "To report bugs send an email to mussmann\@email.uark.edu\n";
   print "When submitting bugs please include all input files, options used for the program, and all error messages that were printed to the screen\n\n";
   print "Program Options:\n";
-  print "\t\t[ -h | -o | -p ]\n\n";
+  print "\t\t[ -h | -m | -o | -p ]\n\n";
   print "\t-h:\tUse this flag to display this help message.\n";
   print "\t\tThe program will die after the help message is displayed.\n\n";
+  print "\t-m:\tInput a population map file to construct taxpartition sets.\n";
+  print "\t\tThe format for this file is sampleID <TAB> popID.\n\n";
   print "\t-o:\tUse this flag to specify the output file name.\n";
   print "\t\tIf no name is provided, the file extension \".nex\" will be appended to the input file name.\n\n";
   print "\t-p:\tSpecify the name of a phylip file.\n\n";
@@ -111,11 +148,44 @@ sub parsecom{
   my %opts = %$params;
   
   # set default values for command line arguments
+  my $map = $opts{m};
+  my $sets = 0;
+  if( $opts{m} ){
+	$sets = 1;
+  }
   my $phy = $opts{p} || die "No input file specified.\n\n"; #used to specify input phylip file.
   my $out = $opts{o} || "$phy.nex"  ; #used to specify output file name.  If no name is provided, the file extension ".nex" will be appended to the input file name.
 
 
-  return( $phy, $out );
+  return( $phy, $out, $sets, $map );
+
+}
+
+#####################################################################################################
+# subroutine to put file into an array
+
+sub filetoarray{
+
+  my( $infile, $array ) = @_;
+
+  
+  # open the input file
+  open( FILE, $infile ) or die "Can't open $infile: $!\n\n";
+
+  # loop through input file, pushing lines onto array
+  while( my $line = <FILE> ){
+    chomp( $line );
+    next if($line =~ /^\s*$/);
+    #print $line, "\n";
+    push( @$array, $line );
+  }
+
+  #foreach my $thing( @$array ){
+  #	print $thing, "\n";
+  #}
+
+  # close input file
+  close FILE;
 
 }
 
