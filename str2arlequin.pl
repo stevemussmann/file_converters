@@ -66,7 +66,7 @@ for(my $i=1; $i<@strlines; $i+=2){
 	@{$hohoa{$name}{"allele2"}} = @allele2;
 }
 
-open(OUT, '>', $out) or die "Can't open $out, d-bag: $!\n\n";
+open(OUT, '>', $out) or die "Can't open $out: $!\n\n";
 
 print OUT "[Profile]\n";
 print OUT "\tTitle=\"File converted from $str\"\n\n";
