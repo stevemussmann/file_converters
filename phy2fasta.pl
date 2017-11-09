@@ -72,7 +72,7 @@ sub help{
 	print "\t-h:\tUse this flag to display this help message.\n";
 	print "\t\tThe program will die after the help message is displayed.\n\n";
 	print "\t-o:\tUse this flag to specify the output file name.\n";
-	print "\t\tIf no name is provided, the file extension \".pomo\" will be appended to the input file name.\n\n";
+	print "\t\tIf no name is provided, the file extension \".fasta\" will be appended to the input file name.\n\n";
 	print "\t-p:\tUse this flag to specify the name of a fasta file.\n\n";
 }
 
@@ -84,8 +84,8 @@ sub parsecom{
 	my %opts = %$params;
 
 	# set default values for command line arguments
-	my $file = $opts{p} || die "No input file specified.\n\n"; #used to specify input fasta file name.
-	my $out = $opts{o} || "$file.fasta"  ; #used to specify output file name.  If no name is provided, the file extension ".pomo" will be appended to the input file name
+	my $file = $opts{p} || die "No input file specified.\n\n"; #used to specify input phylip file name.
+	my $out = $opts{o} || "$file.fasta"  ; #used to specify output file name.  If no name is provided, the file extension ".fasta" will be appended to the input file name
 
 	return( $file, $out );
 }
