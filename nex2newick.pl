@@ -26,21 +26,59 @@ my( $nex, $out ) = &parsecom( \%opts );
 
 # declare variables
 my @lines; # array to hold lines from input nexus file
+my %translate;
+my @trees;
 
 open( NEX, $nex ) or die "Can't open $nex: $!\n\n";
 
 while( my $line = <NEX> ){
 	chomp( $line );
+	$line =~ s/^\s+|\s+$//g;
 	push( @lines, $line );
 }
 
 close NEX;
 
+my $record = 0;
+
 foreach my $line( @lines ){
-	print $line, "\n";
+	if($line eq "Translate" ){
+		$record = 1;
+	}
+	if( $line eq ";" ){
+		$record = 0;
+	}
+	if( $record == 1 && $line ne "Translate"){
+		$line =~ s/\,//g;
+		#print $line, "\n";
+		my @stuff = split(/\s+/, $line);
+		$translate{$stuff[0]} = $stuff[1];
+	}
 }
 
-#print Dumper(\@seqs);
+foreach my $line( @lines ){
+	if( $line =~ /^tree\sB/ ){
+		$line =~ s/tree\sB_\d+\.\d+\s=.+\]\s//g;
+		push( @trees, $line );
+	}	
+}
+
+foreach my $key (sort {$b <=> $a}  keys %translate ){
+	for( my $i=0; $i<@trees; $i++ ){
+		$trees[$i] =~ s/\Q$key/\Q$translate{$key}/g;
+	}
+}
+
+open( OUT, '>', $out ) or die "Can't open $out: $!\n\n";
+
+foreach my $tree( @trees ){
+	print OUT $tree, "\n";
+}
+
+close OUT;
+
+#print Dumper(\%translate);
+#print Dumper(\@trees);
 
 exit;
 
