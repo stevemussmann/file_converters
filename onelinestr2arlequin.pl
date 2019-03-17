@@ -57,8 +57,8 @@ foreach my $line( @strlines ){
 	my @allele1;
 	my @allele2;
 	for( my $i=1; $i<@temp; $i++ ){
-		push( @allele1, $strlines[$i-1] );
-		push( @allele2, $strlines[$i] );
+		push( @allele1, $temp[$i-1] );
+		push( @allele2, $temp[$i] );
 	}
 
 	$numloci = scalar(@allele1);
@@ -96,7 +96,7 @@ foreach my $pop(sort keys %popcounts){
 		}
 		foreach my $first(@{$hohoa{$ind}{"allele1"}}){
 			print OUT "  ";
-			if($first == -9){
+			if($first == 0){
 				print OUT " ?";
 			}else{
 				print OUT "0";
@@ -107,7 +107,7 @@ foreach my $pop(sort keys %popcounts){
 
 		foreach my $second(@{$hohoa{$ind}{"allele2"}}){
 			print OUT "  ";
-			if($second == -9){
+			if($second == 0){
 				print OUT " ?";
 			}else{
 				print OUT "0";
