@@ -154,7 +154,7 @@ sub help{
   print "\t\tThis is a tab delimited file specifying the sample name in the first column and population name in the second.\n\n";
   print "\t-o:\tUse this flag to specify the output file name.\n";
   print "\t\tIf no name is provided, the file extension \".arp\" will be appended to the input file name.\n\n";
-  print "\t-s:\tUse this flag to specify the name of the shitty structure file produced by pyRAD.\n\n";
+  print "\t-s:\tUse this flag to specify the name of the structure file produced by pyRAD.\n\n";
   
 }
 
