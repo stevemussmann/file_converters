@@ -35,21 +35,14 @@ my @vcflines; #lines from vcf file
 # read VCF file to array
 &filetoarray( $vcf, \@vcflines);
 
+my @header;
 while( @vcflines ){
 	my $line = shift( @vcflines );
-	if( $line =~ /^##/ ){
-		next;
-	}else{
-		unshift( @vcflines, $line );
+	if( $line !~ /^##/ ){
+		@header = split( /\s+/, $line );
 		last;
 	}
 }
-
-# remove header lines from array
-#splice( @vcflines, 0, 11 );
-
-# convert first line to array
-my @header = split( /\s+/, shift(@vcflines) );
 
 #parse header to get alphabetical list of populations
 my %poplist;
