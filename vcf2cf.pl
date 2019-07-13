@@ -35,8 +35,18 @@ my @vcflines; #lines from vcf file
 # read VCF file to array
 &filetoarray( $vcf, \@vcflines);
 
+while( @vcflines ){
+	my $line = shift( @vcflines );
+	if( $line =~ /^##/ ){
+		next;
+	}else{
+		unshift( @vcflines, $line );
+		last;
+	}
+}
+
 # remove header lines from array
-splice( @vcflines, 0, 11 );
+#splice( @vcflines, 0, 11 );
 
 # convert first line to array
 my @header = split( /\s+/, shift(@vcflines) );
