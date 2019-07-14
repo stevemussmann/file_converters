@@ -13,7 +13,7 @@ if( scalar( @ARGV ) == 0 ){
 
 # take command line arguments
 my %opts;
-getopts( 'hm:o:v:', \%opts );
+getopts( 'hm:o:r:v:', \%opts );
 
 # if -h flag is used, or if no command line arguments were specified, kill program and print help
 if( $opts{h} ){
@@ -22,7 +22,17 @@ if( $opts{h} ){
 }
 
 # parse the command line
-my( $vcf, $cf, $map ) = &parsecom( \%opts );
+my( $vcf, $cf, $map, $rem ) = &parsecom( \%opts );
+
+my %remove;
+my @temprem = split( /,/, $rem );
+my $nrem=0;
+if( $temprem[0] ne "-9" ){
+	$nrem = scalar(@temprem);
+}
+foreach my $item( @temprem ){
+	$remove{$item}++;
+}
 
 # Declare variables
 my %maphash; #species map in a hash.  Key=sample, Value=pop
@@ -51,7 +61,7 @@ for( my $i=9; $i<@header; $i++ ){
 }
 
 #get number of populations and sites for output header line
-my $npops = keys(%poplist);
+my $npops = keys(%poplist) - $nrem;
 my $nsites = scalar( @vcflines );
 
 open( OUT, '>', $cf ) or die "Can't open $cf, $!\n\n";
@@ -69,7 +79,9 @@ my @outheadertwo;
 push( @outheadertwo, "CHROM" );
 push( @outheadertwo, "POS" );
 foreach my $pop( sort keys %poplist ){
-	push( @outheadertwo, $pop );
+	if( !exists($remove{$pop}) ){
+		push( @outheadertwo, $pop );
+	}
 }
 my $printoutheadertwo = join( "\t", @outheadertwo );
 print OUT $printoutheadertwo, "\n";
@@ -119,12 +131,14 @@ foreach my $line( @vcflines ){
 	push( @newline, $pos );
 	
 	foreach my $pop( sort keys %cfhash ){
-		my @locus;
-		foreach my $base( sort{ lc($a) cmp lc($b) } keys%{$cfhash{$pop}} ){
-			push( @locus, ${$cfhash{$pop}{$base}} );
+		if( !exists($remove{$pop}) ){
+			my @locus;
+			foreach my $base( sort{ lc($a) cmp lc($b) } keys%{$cfhash{$pop}} ){
+				push( @locus, ${$cfhash{$pop}{$base}} );
+			}
+			my $printout = join( ',', @locus );
+			push( @newline, $printout );
 		}
-		my $printout = join( ',', @locus );
-		push( @newline, $printout );
 	}
 	my $printline = join( "\t", @newline );
 	print OUT $printline, "\n";
@@ -148,13 +162,15 @@ sub help{
 	print "To report bugs send an email to mussmann\@email.uark.edu\n";
 	print "When submitting bugs please include all input files, options used for the program, and all error messages that were printed to the screen\n\n";
 	print "Program Options:\n";
-	print "\t\t[ -h | -m | -o | -v ]\n\n";
+	print "\t\t[ -h | -m | -o | -r | -v ]\n\n";
 	print "\t-h:\tUse this flag to display this help message.\n";
 	print "\t\tThe program will die after the help message is displayed.\n\n";
 	print "\t-m:\tUse this flag to specify your population map text file. The default file is the speckled dace population map\n";
 	print "\t\tThis is a tab delimited file specifying the sample name in the first column and population name in the second.\n\n";
 	print "\t-o:\tUse this flag to specify the output file name.\n";
 	print "\t\tIf no name is provided, the file extension \".cf\" will be appended to the input file name.\n\n";
+	print "\t-r:\tUse this flag to remove populations from the final output.\n";
+	print "\t\tPopulation names should be comma-delimited.\n\n";
 	print "\t-v:\tUse this flag to specify the name of a vcf file.\n\n";
 
 }
@@ -169,7 +185,8 @@ sub parsecom{
 	my $file = $opts{v} || die "No input file specified.\n\n"; #used to specify input fasta file name.
 	my $out = $opts{o} || "$file.cf"  ; #used to specify output file name.  If no name is provided, the file extension ".cf" will be appended to the input file name
 	my $map = $opts{m} || "/home/mussmann/local/scripts/perl/makemap/sample_map.txt"; #used to specify tab-delimited population map file.  The default file is my master list for speckled dace
-	return( $file, $out, $map );
+	my $remove = $opts{r} || "-9"; #used to specify populations to be excluded.
+	return( $file, $out, $map, $remove );
 
 }
 
