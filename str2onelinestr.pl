@@ -32,9 +32,7 @@ my %popnumbers; # hash to hold codes for population numbers
 my %names; # hash to store list of names from input file
 my %popmap; # hash to hold key/value pairs of individual/population
 my %tosort; # hash of lines to be sorted before printing
-my $numloci;
 my $popnumcount=0;
-my %genepophoh;
 
 # put files into array
 &filetoarray( $str, \@strlines );
@@ -56,67 +54,39 @@ foreach my $item( @maplines ){
 	$popmap{$temp[0]} = $temp[1];
 }
 
-# make structure file into genepop format
+# make structure file into single line
 for(my $i = 1; $i < @strlines; $i+=2){
 	my @allele1 = split(/\s+/, $strlines[$i-1]);
 	my @allele2 = split(/\s+/, $strlines[$i]);
 
 	my $name = shift(@allele1);
 	shift(@allele2);
-
-	$numloci = scalar(@allele1);
-
 	#print $name, "\t", $popnumbers{$popmap{$name}}, "\t", $allele1[0], $allele2[0], "\n";
 	
 	my @all;
-	my @allgenepop;
+	push(@all, $name);
+	push(@all, $popnumbers{$popmap{$name}});
+	push(@all, 0);
 	for(my $j=0; $j<@allele1; $j++){
-		#increment each allele because pyrad used 0 based counting for genotyping.  Genepop uses 0 to denote missing data
-		$allele1[$j]++;
-		$allele2[$j]++;
-		# -9 becomes -8, so this must be converted to the genepop missing data value of 0
-		if($allele1[$j] == -8){
-			$allele1[$j] = 0;
-		}	
-		if($allele2[$j] == -8){
-			$allele2[$j] = 0;
-		}
-		
-		#front pad each allele with a 0.
-		my @templocus;
-		push(@templocus, sprintf("%02d", $allele1[$j]));
-		push(@templocus, sprintf("%02d", $allele2[$j]));
-		
-		#join the two alleles for a locus together
-		my $temp = join("", @templocus);
-		
-		#push the locus onto the growing array of loci
-		push(@allgenepop, $temp);
+		push(@all, $allele1[$j]);
+		push(@all, $allele2[$j]);
 	}
-
-	#join together all of the loci
-	my $tempgenotype = join(" ", @allgenepop);
-
-	#add the individual to the hash
-	$genepophoh{$popmap{$name}}{$name}=$tempgenotype;
+	my $templine = join("\t", @all);
+	#push(@singleline, $templine);
+	push(@{$tosort{$popnumbers{$popmap{$name}}}}, $templine);
 }
 
 open(OUT, '>', $out) or die "Can't open $out: $!\n\n";
-print OUT "Title line: \"File converted from pyRAD\"\n";
-for(my $i=0; $i<$numloci; $i++){
-	print OUT "Locus", $i+1, "\n";
-}
-foreach my $pop(sort keys %genepophoh ){
-	print OUT "pop\n";
-	foreach my $ind(sort keys %{$genepophoh{$pop}}){
-		print OUT $ind, ",\t", $genepophoh{$pop}{$ind}, "\n";;
+foreach my $item(sort keys %tosort ){
+	foreach my $line(@{$tosort{$item}}){
+		print OUT $line, "\n";
 	}
 #	print OUT $line, "\n";
 }
 
 close OUT;
 
-#print Dumper(\%genepophoh);
+
 #print Dumper(\%popnumbers);
 #print Dumper(\%popmap);
 #print Dumper(\%names);
@@ -134,7 +104,7 @@ exit;
 # subroutine to print help
 sub help{
   
-  print "\nstr2genepop.pl is a perl script developed by Steven Michael Mussmann\n\n";
+  print "\nstr2onelinestr.pl is a perl script developed by Steven Michael Mussmann\n\n";
   print "To report bugs send an email to mussmann\@email.uark.edu\n";
   print "When submitting bugs please include all input files, options used for the program, and all error messages that were printed to the screen\n\n";
   print "Program Options:\n";
@@ -144,7 +114,7 @@ sub help{
   print "\t-m:\tUse this flag to specify your population map text file.\n";
   print "\t\tThis is a tab delimited file specifying the sample name in the first column and population name in the second.\n\n";
   print "\t-o:\tUse this flag to specify the output file name.\n";
-  print "\t\tIf no name is provided, the file extension \".genepop\" will be appended to the input file name.\n\n";
+  print "\t\tIf no name is provided, the file extension \".str\" will be appended to the input file name.\n\n";
   print "\t-s:\tUse this flag to specify the name of the structure file produced by pyRAD.\n\n";
   
 }
@@ -159,7 +129,7 @@ sub parsecom{
   
   # set default values for command line arguments
   my $str = $opts{s} || die "No input file specified.\n\n"; #used to specify input file name.  This is the input snps file produced by pyRAD
-  my $out = $opts{o} || "$str.genepop"  ; #used to specify output file name.  If no name is provided, the file extension ".genepop" will be appended to the input file name.
+  my $out = $opts{o} || "$str.str"  ; #used to specify output file name.  If no name is provided, the file extension ".out" will be appended to the input file name.
 
   my $map = $opts{m} || die "No input population map file specified.\n\n"; #used to specify tab-delimited population map file  
 
