@@ -59,7 +59,11 @@ print ARP "     DistMatMantel={", "\n        ";
 
 for( my $i=0; $i<@sorted; $i++ ){
 	for( my $j=0; $j<$i+1; $j++ ){
-		print ARP " ", $hoh{$sorted[$i]}{$sorted[$j]};
+		if($sorted[$i] eq $sorted[$j] ){
+			print ARP " ", "0.0";
+		}else{
+			print ARP " ", $hoh{$sorted[$i]}{$sorted[$j]};
+		}
 	}
 	print ARP "\n        ";
 }
@@ -91,15 +95,10 @@ sub help{
   print "To report bugs send an email to mussmann\@email.uark.edu\n";
   print "When submitting bugs please include all input files, options used for the program, and all error messages that were printed to the screen\n\n";
   print "Program Options:\n";
-  print "\t\t[ -h | -m | -o | -s ]\n\n";
-  print "\t-h:\tUse this flag to display this help message.\n";
-  print "\t\tThe program will die after the help message is displayed.\n\n";
-  print "\t-m:\tUse this flag to specify your population map text file.\n";
-  print "\t\tThis is a tab delimited file specifying the sample name in the first column and population name in the second.\n\n";
-  print "\t-o:\tUse this flag to specify the output file name.\n";
-  print "\t\tIf no name is provided, the file extension \".arp\" will be appended to the input file name.\n\n";
-  print "\t-s:\tUse this flag to specify the name of the shitty structure file produced by pyRAD.\n\n";
-  
+  print "\t\t[ -a | -d | -h ]\n\n";
+  print "\t-a:\tSpecify the Arlequin project to which you want to append the geographic distance matrix.\n\n";
+  print "\t-d:\tSpecify the tab-delimited distance matrix. Format=Pop1<tab>Pop2<tab>Distance.\n\n";
+  print "\t-h:\tUse this flag to display this help message.\n\n";
 }
 
 #####################################################################################################

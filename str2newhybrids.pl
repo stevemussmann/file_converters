@@ -79,9 +79,9 @@ foreach my $line( @lines ){
 	$indcounter++;
 	my @temp = split( /\s+/, $line );
 	print OUT $indcounter, "\t";
-	if( $temp[1] == $z0 ){
+	if( $temp[1] eq $z0 ){
 		print OUT "z0";
-	}elsif( $temp[1] == $z1 ){
+	}elsif( $temp[1] eq $z1 ){
 		print OUT "z1";
 	}
 	for( my $i=3; $i<@temp; $i+=2 ){

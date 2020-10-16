@@ -134,7 +134,7 @@ exit;
 sub help{
   
   print "\nstr2immanc.pl is a perl script developed by Steven Michael Mussmann\n\n";
-  print "To report bugs send an email to mussmann\@email.uark.edu\n";
+  print "To report bugs send an email to mussmann\@uark.edu\n";
   print "When submitting bugs please include all input files, options used for the program, and all error messages that were printed to the screen\n\n";
   print "Program Options:\n";
   print "\t\t[ -h | -m | -o | -p | -s ]\n\n";
