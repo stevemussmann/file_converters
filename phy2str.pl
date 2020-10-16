@@ -33,6 +33,7 @@ my %map = (
 	'Y' => '3,1',
 	'K' => '2,1',
 	'N' => '-9,-9',
+	'-' => '-9,-9',
 );
 
 # parse the command line
@@ -53,6 +54,7 @@ foreach my $line( @phylines ){
 	my @loci = split( //, $temp[1]);
 	my @converted;
 	foreach my $locus( @loci ){
+		$locus = uc($locus);
 		#print $locus, "\n";
 		push( @converted, $map{$locus} );
 	}
