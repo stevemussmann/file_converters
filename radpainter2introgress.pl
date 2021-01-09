@@ -65,7 +65,7 @@ foreach my $ind( @header ){
 }
 
 # read in haplotype data
-my $counter=0;
+my $counter=-1;
 foreach my $line( @paintlines ){
 	$counter++;
 	my @temp = split( /\t/, $line );
@@ -254,7 +254,7 @@ sub writeGroupFile{
 	print OUT $headerstring, "\n";
 	print OUT $popstring, "\n";
 
-	for( my $i=0; $i<$counter; $i++ ){
+	for( my $i=0; $i<$counter+1; $i++ ){
 		if(exists($$yn{$i}) ){
 			if($$yn{$i}==1){
 				my @locus;
