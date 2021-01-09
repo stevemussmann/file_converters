@@ -29,7 +29,10 @@ my @paintlines; # holds lines from radpainter file
 my @maplines; # holds lines from population map file
 my @loclines; # holds lines from locus list
 my %mapData; # holds population map information
+my %mapCounts; # holds number of individuals found in each population in radpainter file
 my %paintData; # holds genotype data from radpainter file
+my %NA; # counts missing data per pop per locus
+my %printYN; # keeps track of if a locus should be printed;
 
 # read input files into arrays
 &filetoarray( $paint, \@paintlines );
@@ -52,7 +55,14 @@ my %admixGroup;
 &getGroup($admix, \%admixGroup );
 
 # catch header from input radpainter file
-my @header = split( /\t/, shift( @paintlines ) );
+my $catch = shift(@paintlines);
+chomp($catch);
+my @header = split( /\t/, $catch );
+
+# record number of individuals in each population in radpainter file
+foreach my $ind( @header ){
+	$mapCounts{$mapData{$ind}}++;
+}
 
 # read in haplotype data
 my $counter=0;
@@ -65,6 +75,10 @@ foreach my $line( @paintlines ){
 		# convert missing data to NA values
 		if( $temp[$i] eq "" ){
 			$temp[$i]="NA";
+			$NA{$counter}{$mapData{$header[$i]}}++;
+			#print $mapData{$header[$i]}, "\n";
+			#print scalar(@header), "\t";
+			#print scalar(@temp), "\n";
 		}
 		# show both alleles of homozygotes
 		if( $temp[$i] !~ /\// ){
@@ -74,24 +88,54 @@ foreach my $line( @paintlines ){
 	}
 }
 
+foreach my $loc( sort keys %NA ){
+	#print $loc, "\n";
+	my $pr = 1;
+	foreach my $pop( sort keys %{$NA{$loc}} ){
+		if( $NA{$loc}{$pop} == $mapCounts{$pop} ){
+			$pr=0;
+			#print( "Locus $loc has no data for a population.\n");
+		}
+		#print $pop, "\n";
+	}
+	$printYN{$loc}=$pr;
+}
+
 # write admix files for each requested population group
-&writeGroupFile( \%firstParent, "$out.p1" );
-&writeGroupFile( \%secondParent, "$out.p2" );
-&writeGroupFile( \%admixGroup, "$out.admix" );
+&writeGroupFile( \%firstParent, "$out.p1", \%printYN );
+&writeGroupFile( \%secondParent, "$out.p2", \%printYN );
+&writeGroupFile( \%admixGroup, "$out.admix", \%printYN );
 
 # print locus information file
 my $locusout = "$paint.loci.txt";
 open( LOUT, '>', $locusout ) or die "Can't open $locusout: $!\n\n";
 print LOUT "locus,type\n";
-foreach my $line( @loclines ){
-	chomp( $line );
-	print LOUT $line, ",C\n";
+#foreach my $line( @loclines ){
+#	chomp( $line );
+#	print LOUT $line, ",C\n";
+#}
+
+for( my $i=0; $i<@loclines; $i++ ){
+	chomp( $loclines[$i] );
+	if( exists( $printYN{$i} ) ){
+		if($printYN{$i} == 1){
+			print LOUT $loclines[$i], ",C\n";
+		}
+	}else{
+		print LOUT $loclines[$i], ",C\n";
+	}
+
 }
+
 close LOUT;
 
 #print Dumper( \%firstParent );
 #print Dumper( \%mapData );
+#print Dumper( \@header );
 #print Dumper( \%paintData );
+#print Dumper( \%NA );
+#print Dumper( \%mapCounts );
+#print Dumper( \%printYN );
 
 exit;
 
@@ -190,7 +234,7 @@ sub getGroup{
 
 sub writeGroupFile{
 
-	my( $group, $outname  ) = @_;
+	my( $group, $outname, $yn  ) = @_;
 
 	my @newheader;
 	my @newpops;
@@ -211,14 +255,29 @@ sub writeGroupFile{
 	print OUT $popstring, "\n";
 
 	for( my $i=0; $i<$counter; $i++ ){
-		my @locus;
-		foreach my $ind( sort keys %paintData ){
-			if( exists $$group{$ind} ){
-				push( @locus, $paintData{$ind}[$i] );
+		if(exists($$yn{$i}) ){
+			if($$yn{$i}==1){
+				my @locus;
+				foreach my $ind( sort keys %paintData ){
+					if( exists $$group{$ind} ){
+						push( @locus, $paintData{$ind}[$i] );
+					}
+				}
+				my $locusstring = join( ",", @locus );
+				print OUT $locusstring, "\n";
+			#}else{
+			#	print("not printing locus $i.\n");
 			}
+		}else{
+			my @locus;
+			foreach my $ind( sort keys %paintData ){
+				if( exists $$group{$ind} ){
+					push( @locus, $paintData{$ind}[$i] );
+				}
+			}
+			my $locusstring = join( ",", @locus );
+			print OUT $locusstring, "\n";
 		}
-		my $locusstring = join( ",", @locus );
-		print OUT $locusstring, "\n";
 	}
 
 	close OUT;
