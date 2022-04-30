@@ -15,3 +15,13 @@ This script converts the structure files output by pyRAD to .immanc format for a
 ```
  pyradStr2immanc.pl -m map.txt -p "NFV,NTH,WFA" -s pyrad_output.str -o NFV+NTH+WFA.immanc
  ```
+## str2sequoia.pl
+This is a simple script that converts a structure file to sequoia format. The script assumes that the Structure file is formatted as the following:
+* header line of locus names
+* single line per individual
+* missing data values coded as -9
+* first column of individual identifiers followed by columns of genotype data. No extra columns (population data, popflag, etc.)
+* tab or space delimited
+```
+str2sequoia.pl -s structure_input.str -o sequoia_output.seq
+```
