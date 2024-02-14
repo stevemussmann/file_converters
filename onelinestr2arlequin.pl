@@ -56,7 +56,7 @@ foreach my $line( @strlines ){
 	}
 	my @allele1;
 	my @allele2;
-	for( my $i=1; $i<@temp; $i++ ){
+	for( my $i=1; $i<@temp; $i+=2 ){
 		push( @allele1, $temp[$i-1] );
 		push( @allele2, $temp[$i] );
 	}
