@@ -119,9 +119,9 @@ foreach my $line( @vcflines ){
 			}
 		}
 	
-		if( $temp[$i] !~ /^\.\/\./ ){
-			my @temp2 = split( /\:/, $temp[$i] );
-			my @locus = split( /\//, $temp2[0] );
+		if( $temp[$i] !~ /\.\/\./ ){
+			my @item = split( /\:/, $temp[$i] );
+			my @locus = split( /\//, $item[0] );
 			for(my $j=0; $j<@locus; $j++ ){
 				${$cfhash{$pop}{$nucs[$locus[$j]]}}++;
 			}
