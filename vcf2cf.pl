@@ -120,7 +120,9 @@ foreach my $line( @vcflines ){
 		}
 	
 		if( $temp[$i] !~ /\.\/\./ ){
-			my @locus = split( /\|/, $temp[$i] );
+			my @temp2 = split( /:/, $temp[$i] );
+			my @locus = split( /\//, $temp2[0] );
+			#my @locus = split( /\|/, $temp[$i] );
 			for(my $j=0; $j<@locus; $j++ ){
 				${$cfhash{$pop}{$nucs[$locus[$j]]}}++;
 			}
