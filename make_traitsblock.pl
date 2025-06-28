@@ -2,6 +2,7 @@
 
 use warnings;
 use strict;
+use List::MoreUtils qw (uniq);
 use Data::Dumper;
 
 my $file = "map.txt";
@@ -21,7 +22,10 @@ while( my $line = <FILE> ){
 
 close FILE;
 
-my $count = keys(%hash);
+my @arr = values(%hash);
+my @unique = uniq(@arr);
+
+my $count = scalar(@unique);
 
 foreach my $sample( sort keys %hash ){
 	foreach my $site( sort keys %pophash ){
